@@ -59,7 +59,7 @@ public class SecurityConfiguration extends VaadinWebSecurityConfigurerAdapter {
   @Override
   public UserDetailsService userDetailsService() {
     UserDetails homer = User.withUsername("homer").password("{noop}homer").roles("USER").build();
-    UserDetails marge = User.withUsername("marge").password("{noop}homer").roles("USER").build();
+    UserDetails marge = User.withUsername("marge").password("{noop}marge").roles("USER").build();
     return new InMemoryUserDetailsManager(homer, marge);
   }
 }
