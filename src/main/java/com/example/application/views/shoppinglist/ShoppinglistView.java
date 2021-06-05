@@ -57,6 +57,19 @@ public class ShoppinglistView extends Div {
     setupCollaborationEngine(shoppingService);
   }
 
+  Component getHeader() {
+    var header = new HorizontalLayout();
+    header.setWidthFull();
+    header.setAlignItems(FlexComponent.Alignment.BASELINE);
+
+    var avatars = new CollaborationAvatarGroup(userInfo, "users");
+    avatars.getStyle().set("width", "unset"); // Why does not setSizeUndefined work?
+    var h1 = new H1("Shopping list");
+    header.add(h1, avatars);
+    header.expand(h1);
+    return header;
+  }
+
   private void setupCollaborationEngine(ShoppingService shoppingService) {
     CollaborationEngine.getInstance().openTopicConnection(this, "list", userInfo, topicConnection -> {
       var items = topicConnection.getNamedMap("items");
@@ -81,19 +94,6 @@ public class ShoppinglistView extends Div {
 
       return null;
     });
-  }
-
-  Component getHeader() {
-    var header = new HorizontalLayout();
-    header.setWidthFull();
-    header.setAlignItems(FlexComponent.Alignment.BASELINE);
-
-    var avatars = new CollaborationAvatarGroup(userInfo, "users");
-    avatars.getStyle().set("width", "unset"); // Why does not setSizeUndefined work?
-    var h1 = new H1("Shopping list");
-    header.add(h1, avatars);
-    header.expand(h1);
-    return header;
   }
 
   void addItem(ShoppingListItem item) {
