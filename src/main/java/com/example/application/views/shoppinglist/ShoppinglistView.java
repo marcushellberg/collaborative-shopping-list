@@ -38,7 +38,6 @@ public class ShoppinglistView extends VerticalLayout {
         userInfo = new UserInfo(name, name);
 
         var content = new HorizontalLayout(getShoppingListLayout(), getChatLayout());
-        content.setSizeFull();
 
         setWidth(null);
         setHeightFull();

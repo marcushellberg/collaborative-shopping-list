@@ -72,6 +72,7 @@ public class ItemForm extends HorizontalLayout {
     }
 
     public void reset(ShoppingListItem item) {
+        this.item = item;
         binder.reset(item);
     }
 
