@@ -19,8 +19,6 @@ import com.vaadin.flow.theme.Theme;
  *
  */
 @SpringBootApplication
-@Push
-@EnableAsync
 @Theme(value = "collaborationengine")
 @PWA(name = "Collaboration Engine", shortName = "Collaboration Engine", offlineResources = {"images/logo.png"})
 public class Application extends SpringBootServletInitializer implements AppShellConfigurator {
