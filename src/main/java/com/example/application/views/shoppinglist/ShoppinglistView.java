@@ -67,8 +67,12 @@ public class ShoppinglistView extends VerticalLayout {
             saveItem(item);
             newItemForm.reset(new ShoppingListItem());
         });
+        newItemForm.addClassName("spacing-b-xl");
 
-        var shoppingListLayout = new VerticalLayout(newItemForm, shoppingList);
+        var shoppingListLayout = new VerticalLayout(
+            newItemForm,
+            shoppingList
+        );
         shoppingList.setPadding(false);
         shoppingListLayout.setHeightFull();
         return shoppingListLayout;

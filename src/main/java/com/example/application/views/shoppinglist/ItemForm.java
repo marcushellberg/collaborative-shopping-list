@@ -20,9 +20,9 @@ public class ItemForm extends HorizontalLayout {
         "Nuts, Seeds & Dried Fruit", "Candy", "Beverages", "Wine, Beer & Spirits", "Personal Care", "Health",
         "Baby", "Household", "Kitchen", "Cleaning Products", "Pet Care", "Party", "Floral", "Other");
 
-    private final IntegerField amount = new IntegerField("Amount");
-    private final TextField name = new TextField("Item");
-    private final ComboBox<String> category = new ComboBox<>("Category");
+    private final IntegerField amount = new IntegerField();
+    private final TextField name = new TextField();
+    private final ComboBox<String> category = new ComboBox<>();
     private final CollaborationBinder<ShoppingListItem> binder;
     private final Button button = new Button("Add");
     private ShoppingListItem item;
@@ -38,8 +38,12 @@ public class ItemForm extends HorizontalLayout {
     }
 
     public ItemForm(ShoppingListItem item, UserInfo userInfo) {
+        addClassName("item-form");
         setAlignItems(Alignment.BASELINE);
         category.setItems(CATEGORIES);
+        amount.setPlaceholder("Amount");
+        name.setPlaceholder("Item");
+        category.setPlaceholder("Category");
         add(amount, name, category, button);
         binder = new CollaborationBinder<>(ShoppingListItem.class, userInfo);
         binder.bindInstanceFields(this);
@@ -61,6 +65,9 @@ public class ItemForm extends HorizontalLayout {
 
         if (item.getId() != null) {
             button.setText("Update");
+            addClassName("existing");
+        } else {
+            button.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         }
     }
 
