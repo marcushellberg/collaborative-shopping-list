@@ -9,6 +9,7 @@ import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.binder.Binder;
 
 import java.util.List;
 
@@ -23,7 +24,7 @@ public class ItemForm extends HorizontalLayout {
     private final IntegerField amount = new IntegerField();
     private final TextField name = new TextField();
     private final ComboBox<String> category = new ComboBox<>();
-    private final CollaborationBinder<ShoppingListItem> binder;
+    private final Binder<ShoppingListItem> binder;
     private final Button button = new Button("Add");
     private ShoppingListItem item;
 
@@ -37,15 +38,17 @@ public class ItemForm extends HorizontalLayout {
         void itemDeleted(ShoppingListItem item);
     }
 
-    public ItemForm(ShoppingListItem item, UserInfo userInfo) {
+    public ItemForm(ShoppingListItem item) {
         addClassName("item-form");
         setAlignItems(Alignment.BASELINE);
+
         category.setItems(CATEGORIES);
         amount.setPlaceholder("Amount");
         name.setPlaceholder("Item");
         category.setPlaceholder("Category");
         add(amount, name, category, button);
-        binder = new CollaborationBinder<>(ShoppingListItem.class, userInfo);
+
+        binder = new Binder<>(ShoppingListItem.class);
         binder.bindInstanceFields(this);
         setItem(item);
     }
@@ -60,8 +63,7 @@ public class ItemForm extends HorizontalLayout {
 
     public void setItem(ShoppingListItem item) {
         this.item = item;
-        var id = item.getId() == null ? "new" : item.getId().toString();
-        binder.setTopic("item/" + id, () -> item);
+        binder.readBean(item);
 
         if (item.getId() != null) {
             button.setText("Update");
@@ -69,10 +71,6 @@ public class ItemForm extends HorizontalLayout {
         } else {
             button.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         }
-    }
-
-    public void reset(ShoppingListItem item) {
-        binder.reset(item);
     }
 
     public void setDeleteHandler(DeleteHandler deleteHandler) {

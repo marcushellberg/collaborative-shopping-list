@@ -27,17 +27,13 @@ public class ShoppinglistView extends VerticalLayout {
 
     private final VerticalLayout shoppingList = new VerticalLayout();
     private final ShoppingService shoppingService;
-    private final UserInfo userInfo;
     private final Map<Integer, ItemForm> forms = new HashMap<>();
 
     public ShoppinglistView(ShoppingService shoppingService) {
         addClassName("shoppinglist-view");
         this.shoppingService = shoppingService;
 
-        var name = SecurityContextHolder.getContext().getAuthentication().getName();
-        userInfo = new UserInfo(name, name);
-
-        var content = new HorizontalLayout(getShoppingListLayout(), getChatLayout());
+        var content = new HorizontalLayout(getShoppingListLayout());
         content.setSizeFull();
 
         setWidth(null);
@@ -45,7 +41,7 @@ public class ShoppinglistView extends VerticalLayout {
         add(getHeader(), content);
         expand(content);
 
-        setupCollaborationEngine(shoppingService);
+        shoppingService.getShoppingList().forEach(this::addItem);
     }
 
     private Component getHeader() {
@@ -53,19 +49,17 @@ public class ShoppinglistView extends VerticalLayout {
         header.setWidthFull();
         header.setAlignItems(FlexComponent.Alignment.BASELINE);
 
-        var avatars = new CollaborationAvatarGroup(userInfo, "users");
-        avatars.getStyle().set("width", "unset"); // Why does not setSizeUndefined work?
         var h1 = new H1("Shopping list");
-        header.add(h1, avatars);
+        header.add(h1);
         header.expand(h1);
         return header;
     }
 
     private Component getShoppingListLayout() {
-        var newItemForm = new ItemForm(new ShoppingListItem(), userInfo);
+        var newItemForm = new ItemForm(new ShoppingListItem());
         newItemForm.setSaveHandler(item -> {
             saveItem(item);
-            newItemForm.reset(new ShoppingListItem());
+            newItemForm.setItem(new ShoppingListItem());
         });
         newItemForm.addClassName("spacing-b-xl");
 
@@ -78,56 +72,11 @@ public class ShoppinglistView extends VerticalLayout {
         return shoppingListLayout;
     }
 
-    private Component getChatLayout() {
-        var messageList = new CollaborationMessageList(userInfo, "chat");
-        var messageInput = new CollaborationMessageInput(messageList);
-        var chatLayout = new VerticalLayout(
-            new H2("Chat"),
-            messageList,
-            messageInput
-        );
-
-        chatLayout.addClassNames("bg-contrast-5");
-        chatLayout.setHeightFull();
-        chatLayout.setWidth(null);
-        chatLayout.expand(messageList);
-        return chatLayout;
-    }
-
-    private void setupCollaborationEngine(ShoppingService shoppingService) {
-        CollaborationEngine.getInstance().openTopicConnection(this, "list", userInfo, topicConnection -> {
-            var items = topicConnection.getNamedMap("items");
-
-            items.subscribe(e -> {
-                if (e.getOldValue(ShoppingListItem.class) == null) { // new
-                    addItem(e.getValue(ShoppingListItem.class));
-                } else {
-                    if (e.getValue(ShoppingListItem.class) == null) { // deleted
-                        deleteItem(e.getOldValue(ShoppingListItem.class));
-                    } else { // updated
-                        var updated = e.getValue(ShoppingListItem.class);
-                        forms.get(updated.getId()).reset(updated);
-
-                    }
-                }
-            });
-
-            // Init the map if it is empty
-            if (items.getKeys().count() == 0) {
-                shoppingService.getShoppingList().forEach(item -> {
-                    items.put(item.getId().toString(), item);
-                });
-            }
-
-            return null;
-        });
-    }
-
     void addItem(ShoppingListItem item) {
-        var form = new ItemForm(item, userInfo);
+        var form = new ItemForm(item);
         form.setSaveHandler(this::saveItem);
 
-        if (item.getId() != null) { // Only for saved items
+        if (item.getId() != null) {
             form.setDeleteHandler(this::deleteItem);
         }
         forms.put(item.getId(), form);
@@ -136,15 +85,14 @@ public class ShoppinglistView extends VerticalLayout {
 
     void saveItem(ShoppingListItem updated) {
         try {
+            var newItem = updated.getId() == null;
             var saved = shoppingService.saveItem(updated);
 
-            CollaborationEngine.getInstance().openTopicConnection(this, "list", userInfo, topicConnection -> {
-                var items = topicConnection.getNamedMap("items");
-                items.put(saved.getId().toString(), saved);
-
-                return null;
-            });
-
+            if (newItem) {
+                addItem(saved);
+            } else {
+                forms.get(saved.getId()).setItem(saved);
+            }
         } catch (ObjectOptimisticLockingFailureException e) {
             showSaveError();
         }
@@ -155,15 +103,6 @@ public class ShoppinglistView extends VerticalLayout {
             shoppingService.deleteItem(item);
             shoppingList.remove(forms.get(item.getId()));
             forms.remove(item.getId());
-
-            // Update the shared data model
-            CollaborationEngine.getInstance().openTopicConnection(this, "list", userInfo, topicConnection -> {
-                var items = topicConnection.getNamedMap("items");
-                items.put(item.getId().toString(), null); // no delete API?
-
-                return null;
-            });
-
         } catch (ObjectOptimisticLockingFailureException e) {
             showSaveError();
         }
