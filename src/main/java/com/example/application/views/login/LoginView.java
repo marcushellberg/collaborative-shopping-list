@@ -12,24 +12,24 @@ import com.vaadin.flow.router.Route;
 @PageTitle("Login")
 public class LoginView extends VerticalLayout implements BeforeEnterObserver {
 
-  private LoginForm login = new LoginForm();
+    private LoginForm login = new LoginForm();
 
-  public LoginView() {
-    addClassName("login-view");
-    setSizeFull();
+    public LoginView() {
+        addClassName("login-view");
+        setSizeFull();
 
-    setJustifyContentMode(JustifyContentMode.CENTER);
-    setAlignItems(Alignment.CENTER);
+        setJustifyContentMode(JustifyContentMode.CENTER);
+        setAlignItems(Alignment.CENTER);
 
-    login.setAction("login");
+        login.setAction("login");
 
-    add(new H1("Shopping list"), login);
-  }
-
-  @Override
-  public void beforeEnter(BeforeEnterEvent beforeEnterEvent) {
-    if (beforeEnterEvent.getLocation().getQueryParameters().getParameters().containsKey("error")) {
-      login.setError(true);
+        add(new H1("Shopping list"), login);
     }
-  }
+
+    @Override
+    public void beforeEnter(BeforeEnterEvent beforeEnterEvent) {
+        if (beforeEnterEvent.getLocation().getQueryParameters().getParameters().containsKey("error")) {
+            login.setError(true);
+        }
+    }
 }

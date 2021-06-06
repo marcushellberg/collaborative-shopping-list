@@ -23,11 +23,9 @@ import java.util.Map;
 
 @Route(value = "")
 @PageTitle("Shopping list")
-public class ShoppinglistView extends Div {
+public class ShoppinglistView extends VerticalLayout {
 
-    private final VerticalLayout shoppingList = new VerticalLayout() {{
-        setPadding(false);
-    }};
+    private final VerticalLayout shoppingList = new VerticalLayout();
     private final ShoppingService shoppingService;
     private final UserInfo userInfo;
     private final Map<Integer, ItemForm> forms = new HashMap<>();
@@ -39,27 +37,18 @@ public class ShoppinglistView extends Div {
         var name = SecurityContextHolder.getContext().getAuthentication().getName();
         userInfo = new UserInfo(name, name);
 
-        var newItemForm = new ItemForm(new ShoppingListItem(), userInfo);
-        newItemForm.setSaveHandler(item -> {
-            saveItem(item);
-            newItemForm.setItem(new ShoppingListItem());
-        });
+        var content = new HorizontalLayout(getShoppingListLayout(), getChatLayout());
+        content.setSizeFull();
 
-        var messageList = new CollaborationMessageList(userInfo, "chat");
-        var messageInput = new CollaborationMessageInput(messageList);
-
-        add(
-            getHeader(),
-            new HorizontalLayout(
-                new VerticalLayout(newItemForm, shoppingList),
-                new VerticalLayout(messageList, messageInput)
-            )
-        );
+        setWidth(null);
+        setHeightFull();
+        add(getHeader(), content);
+        expand(content);
 
         setupCollaborationEngine(shoppingService);
     }
 
-    Component getHeader() {
+    private Component getHeader() {
         var header = new HorizontalLayout();
         header.setWidthFull();
         header.setAlignItems(FlexComponent.Alignment.BASELINE);
@@ -70,6 +59,35 @@ public class ShoppinglistView extends Div {
         header.add(h1, avatars);
         header.expand(h1);
         return header;
+    }
+
+    private Component getShoppingListLayout() {
+        var newItemForm = new ItemForm(new ShoppingListItem(), userInfo);
+        newItemForm.setSaveHandler(item -> {
+            saveItem(item);
+            newItemForm.reset(new ShoppingListItem());
+        });
+
+        var shoppingListLayout = new VerticalLayout(newItemForm, shoppingList);
+        shoppingList.setPadding(false);
+        shoppingListLayout.setHeightFull();
+        return shoppingListLayout;
+    }
+
+    private Component getChatLayout() {
+        var messageList = new CollaborationMessageList(userInfo, "chat");
+        var messageInput = new CollaborationMessageInput(messageList);
+        var chatLayout = new VerticalLayout(
+            new H2("Chat"),
+            messageList,
+            messageInput
+        );
+
+        chatLayout.addClassNames("bg-contrast-5");
+        chatLayout.setHeightFull();
+        chatLayout.setWidth(null);
+        chatLayout.expand(messageList);
+        return chatLayout;
     }
 
     private void setupCollaborationEngine(ShoppingService shoppingService) {
@@ -84,14 +102,17 @@ public class ShoppinglistView extends Div {
                         deleteItem(e.getOldValue(ShoppingListItem.class));
                     } else { // updated
                         var updated = e.getValue(ShoppingListItem.class);
-                        forms.get(updated.getId()).setItem(updated);
+                        forms.get(updated.getId()).reset(updated);
+
                     }
                 }
             });
 
             // Init the map if it is empty
             if (items.getKeys().count() == 0) {
-                shoppingService.getShoppingList().forEach(this::addItem);
+                shoppingService.getShoppingList().forEach(item -> {
+                    items.put(item.getId().toString(), item);
+                });
             }
 
             return null;
@@ -131,7 +152,7 @@ public class ShoppinglistView extends Div {
             shoppingList.remove(forms.get(item.getId()));
             forms.remove(item.getId());
 
-            // Update the shared
+            // Update the shared data model
             CollaborationEngine.getInstance().openTopicConnection(this, "list", userInfo, topicConnection -> {
                 var items = topicConnection.getNamedMap("items");
                 items.put(item.getId().toString(), null); // no delete API?

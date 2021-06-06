@@ -46,9 +46,9 @@ public class ItemForm extends HorizontalLayout {
         setItem(item);
     }
 
-    public void setSaveHandler(SaveHandler saveHandler){
+    public void setSaveHandler(SaveHandler saveHandler) {
         button.addClickListener(click -> {
-            if(binder.writeBeanIfValid(item)){
+            if (binder.writeBeanIfValid(item)) {
                 saveHandler.itemSaved(item);
             }
         });
@@ -56,15 +56,19 @@ public class ItemForm extends HorizontalLayout {
 
     public void setItem(ShoppingListItem item) {
         this.item = item;
-        binder.reset(item);
-        var id = item.getId() == null ? "new" : item.getId() + "";
+        var id = item.getId() == null ? "new" : item.getId().toString();
         binder.setTopic("item/" + id, () -> item);
-        if(item.getId() != null) {
+
+        if (item.getId() != null) {
             button.setText("Update");
         }
     }
 
-    public void setDeleteHandler(DeleteHandler deleteHandler){
+    public void reset(ShoppingListItem item) {
+        binder.reset(item);
+    }
+
+    public void setDeleteHandler(DeleteHandler deleteHandler) {
         var deleteButton = new Button("Delete", e -> deleteHandler.itemDeleted(item));
         deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
         add(deleteButton);
