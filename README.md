@@ -8,7 +8,7 @@ An example [Vaadin Flow](https://vaadin.com/flow) app using Collaboration Engine
 
 
 ## Requirements
-- Java 16
+- Java 17
 
 ## Running the app
 

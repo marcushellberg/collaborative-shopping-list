@@ -14,15 +14,18 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.auth.AnonymousAllowed;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import javax.annotation.security.PermitAll;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @Route(value = "")
 @PageTitle("Shopping list")
+@PermitAll
 public class ShoppinglistView extends VerticalLayout {
 
     private final VerticalLayout shoppingList = new VerticalLayout();
